@@ -4,10 +4,14 @@ import { SigninDto, SignupDto } from './dto/auth.dto';
 import { User } from '@prisma/client';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async signup(data: SignupDto) {
     try {
@@ -20,7 +24,13 @@ export class AuthService {
           password: hashed_password,
         },
       });
-      return user;
+
+      const payload = {
+        sub: user.id,
+      };
+      return {
+        accessToken: this.jwtService.sign(payload),
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         throw new ForbiddenException('Email or username already exist');
@@ -42,7 +52,11 @@ export class AuthService {
     const isValid: boolean = await argon.verify(user.password, data.password);
     if (!isValid) throw new ForbiddenException('Credentials Taken!');
 
-    // return user
-    return user;
+    // return access token
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+    return this.jwtService.sign(payload);
   }
 }
