@@ -1,32 +1,21 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Request,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, Request, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
-@Controller('api/user')
+@Controller('api/users')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @UseGuards(AuthGuard)
-  @Get(':username')
-  getUser(@Param() param: any, @Request() req) {
-    if (param.username !== req.user_payload.username)
-      throw new UnauthorizedException();
-    return this.userService.getUser(param.username);
+  @Get('me')
+  getUser(@Request() req) {
+    return this.userService.getUser(req.user);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':username')
-  deleteUser(@Param() param: any, @Request() req) {
-    if (param.username !== req.user_payload.username)
-      throw new UnauthorizedException();
-    return this.userService.deleteUser(req.user_payload.sub);
+  @Delete('me')
+  deleteMe(@Request() req) {
+    console.log('delete route');
+    return this.userService.deleteMe(req.user.id);
   }
 }
