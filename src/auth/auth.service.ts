@@ -27,9 +27,10 @@ export class AuthService {
 
       const payload = {
         sub: user.id,
+        username: user.username,
       };
       return {
-        accessToken: this.jwtService.sign(payload),
+        access_token: await this.jwtService.signAsync(payload),
       };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -55,8 +56,10 @@ export class AuthService {
     // return access token
     const payload = {
       sub: user.id,
-      email: user.email,
+      username: user.username,
     };
-    return this.jwtService.sign(payload);
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }
