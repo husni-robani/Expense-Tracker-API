@@ -1,6 +1,14 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
+export class ResponseExpenseDto {
+  id: number;
+  amount: string;
+  name: string;
+  description: string;
+  userId: number;
+}
+
 export class CreateExpenseDto {
   @IsNotEmpty()
   @Transform(({ value }) => BigInt(value), { toClassOnly: true })

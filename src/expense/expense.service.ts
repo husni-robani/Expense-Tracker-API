@@ -1,23 +1,25 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateExpenseDto,
   GetExpenseDto,
+  ResponseExpenseDto,
   UpdateExpenseDto,
 } from './dto/expense.dto';
-import { stringify } from 'querystring';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { Expense } from '@prisma/client';
 
 @Injectable()
 export class ExpenseService {
   constructor(private prisma: PrismaService) {}
 
-  async createExpense(userId: number, data: CreateExpenseDto) {
+  async createExpense(
+    userId: number,
+    data: CreateExpenseDto,
+  ): Promise<ResponseExpenseDto> {
     try {
       const newExpense = await this.prisma.expense.create({
         data: {
@@ -28,17 +30,16 @@ export class ExpenseService {
         },
       });
 
-      return {
-        amount: newExpense.amount.toString(),
-        name: newExpense.name,
-        description: newExpense.description,
-      };
+      return this.expenseData(newExpense);
     } catch (error) {
       throw new BadRequestException();
     }
   }
 
-  async getExpense(expenseId: number, userId: number) {
+  async getExpense(
+    expenseId: number,
+    userId: number,
+  ): Promise<ResponseExpenseDto> {
     try {
       const expense = await this.prisma.expense.findUnique({
         where: {
@@ -47,12 +48,7 @@ export class ExpenseService {
         },
       });
 
-      return {
-        amount: expense.amount.toString(),
-        name: expense.name,
-        description: expense.description,
-        userId: expense.userId,
-      };
+      return this.expenseData(expense);
     } catch (error) {
       throw new BadRequestException();
     }
@@ -62,7 +58,7 @@ export class ExpenseService {
     expenseId: number,
     userId: number,
     expenseData: UpdateExpenseDto,
-  ) {
+  ): Promise<ResponseExpenseDto> {
     try {
       const updateExpense = await this.prisma.expense.update({
         where: {
@@ -71,12 +67,7 @@ export class ExpenseService {
         },
         data: expenseData,
       });
-      return {
-        amount: updateExpense.amount.toString(),
-        name: updateExpense.name,
-        description: updateExpense.description,
-        updatedAt: updateExpense.updatedAt,
-      };
+      return this.expenseData(updateExpense);
     } catch (error) {
       throw new BadRequestException();
     }
@@ -99,5 +90,15 @@ export class ExpenseService {
     } catch (error) {
       throw new BadRequestException();
     }
+  }
+
+  expenseData(expense: Expense): ResponseExpenseDto {
+    return {
+      id: expense.id,
+      amount: expense.amount.toString(),
+      name: expense.name,
+      description: expense.description,
+      userId: expense.userId,
+    };
   }
 }
