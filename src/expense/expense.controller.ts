@@ -26,6 +26,7 @@ export class ExpenseController {
   @UseGuards(AuthGuard)
   @Post()
   createExpense(@Body() data: CreateExpenseDto, @Request() req) {
+    console.log('create expense controller');
     return this.expenseService.createExpense(req.user.id, data);
   }
 
